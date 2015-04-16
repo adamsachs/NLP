@@ -1,0 +1,20 @@
+1b. To determine whether a dependency graph is projective, we first make a
+list of all the arcs in the dependency graph. We then go through each arc in
+this list, identifying if there is any other arc that has both one end (i.e.
+either a head or a dependent) that lies within the original arc and another
+end that lies outside the original arc. That is, we go through each arc and
+determine if there is another arc that overlaps it.
+
+
+1c. Sentence with projective dependency graph: "I ate some meat."
+Sentence with non-projective dependency graph: "Fred opened a door today that had no handle." 'today' is connected to 'open' while the
+subsentence 'that had no handle' is connected to 'door.'
+
+
+
+2b. 
+UAS: 0.229038040231 
+LAS: 0.125473013344
+
+
+ET, IK, IP, AA, SS

@@ -1,0 +1,1 @@
+This is code for a word sense disambiguator that is a SVM classifier based on extracted feature vectors from training data. Relevant code found in 'main.py.'

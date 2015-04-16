@@ -1,0 +1,197 @@
+RESULTS:
+
+Initially, taking window size k=10, both classifiers performed better than
+baseline tests for all languages (using 7 neighbors for k neighbors). Also,
+SVM classifier performed significantly better for all languages (as apposd to
+kneighbors classifier). 
+
+Excluding stopwords from the context vectors (but maintaining a window size of k = 10 on each side,
+i.e. gathering 20 non-stopwords surrounding the instance of the word),
+trained a slightly worse classifier in both Spanish and English (Catalan has no
+stopwords dictionary), for both SVM and kneighbor classifiers.
+
+Interestingly, when increasing the window size to k=15, there was a slight
+decrease in performance from the initial k=10 classifier for both
+classifieres in all language (other than a minimal improvement for Catalan
+SVM). This could be due to the fact that the enlarged window allowed for
+unhelpful and misleading information being included in the context
+vectors--words that did not tell us about the instance at hand. When,
+however, stopwords were excluded from this k=15 size classifier, SVM performance
+improved in both languages, not only with respect to the k=15 size
+classifiers, but also to the k=10 size classifiers. This is interesting
+for two reasons:  the exclusion of stopwords with the SVM classifier
+improved its performance on the k=15 classifiers, while the exclusion of
+stopwords had a negative impact on the k=10 size classifiers; and a k=15
+size classifier had better performance than the k=10 size classifier when
+stopwords were excluded, while the opposite was the case when stopwords were
+included in the context vectors. This leads us to believe that the data cleanup
+done by the exclusion of stopwords allows for an improvement in SVM performance
+from an increased window size that otherwise hurt performance. Also, it
+shows that the data cleanup done by excluding stopwords is more effective
+for SVM with increased window size k=15 instead of k=10. Overall, the conclusions
+recommend coupling the exclusion of stopwords with an increased window size.
+
+Stemming led to general increases in performance for both classifiers in
+both English and Spanish, with comparison to the original k=10 classifiers.
+The only exception is a decrease in performance in 
+Spanish's kneighbor classifier. When coupled with the exclusion of stop
+words and with an increased window size k=15, stemming led to large
+increases in performance for both Spanish and English's SVM classifier,
+compared to other k=15 classifiers and to the k=10 stemming classifier. Thus
+stemming can be said to generally improve performance, as well as working
+well with increased window size. This makes sense, as contextual words
+would seem to indicate more through their stem the sense of the word in
+question, rather than through their form. This feature seems to remain true,
+even as window size is increased and we consider words farther from the word
+in question.
+
+Excluding punctuation, on the other hand, decreased
+performance with k=10 window size for both Spanish classifiers, and
+significantly decreased performance for English classifiers. This would seem
+to indicate that contextual punctuation actually might be a useful indicator of word
+sense in English. There was increased performance in the Catalan classifiers. This would seem to
+indicate that punctuation is not a useful contextual indicator of word sense
+in Catalan. When combined with the exclusion of stopwords and stemming,
+however, the exclusion of punctuation had no effect on English SVM
+classifier, and a positive effect on the Spanish SVM classifier.
+
+Spanish and English saw their best performance when combining all three
+featues (no stopwords, stemming, no punctuation) with an increased window
+size of k=20. This indicates a general trend for coupling an increased
+window size with the inclusion of more of these features. This seems to make
+sense: these features are meant to clean up the data extracted by context
+vectors, so the cleaner the data is, the more data we can extract, and the
+more data we should extract (as there will be less misleading data that is
+picked up). 
+
+
+
+Synonym, hypernym and hyponym inclusion saw decreased performance for
+both classifiers in English, as well as an increase in performance time. It
+seems that none of these features were informative features--instead, they
+seemed to perturb the data. Notably, taking just the synonyms of these words
+led to a sharp decline in SVM performance. Including hypernyms and Hyponyms of the
+first 3 synonyms gave a SVM performance not nearly as bad as just the
+inclusion of synonyms--and when including all synonyms, hypernyms and
+hyponyms, SVM performance decreased again. This leads us to conclude that
+the inclusion of synonyms was especially detrimental to the SVM classifier.
+Due to the long run times of these programs (as they significantly increased
+the context vector size) and the evidence that they clearly  did not improve
+classifier performance, I only performed tests on English data.
+
+
+Using the relevancy score discussed in the assignment seemed to decrease
+kneighbor and  SVM performance on English, when gathering the first top 100 scoring words for
+each sense (which is what I tried first). I noticed that many of the words
+that were being selected as top scorers were words that had been only seen
+in the context of one particular sense, thus they had received a 'perfect'
+score (the arbitrarily high score that I assigned all scores with 0 in the
+denominator). This gave the same high score to a word that had been seen 7
+times and only with one sense, to a word that had been seen only once (and
+thus necessarily was seen with only one sense). Which of these were then
+taken as a 'top 100' score was arbitrary, as these were sorted only
+alphabetically. In order to account for this, I made an adjusted relevancy
+score, which gave higher point values to the aforementioned '100%' words the
+more these words actually had come up. Working with only top 20 words for
+each sense, this adjusted score improved SVM classifier performance over the
+top 100 classifier. I then decided to increase the amount of words chosen
+for each sense, but not to take a particular amount of words x for every
+sense. Instead, I count the amount of '100%' words for a given sense (i.e.
+the amount of words that only appear with that given sense) and divide it by
+the amount of '0% words' for the sense (words that never appear with that
+given sense) and I use this coefficient to take a scaled amount of words for
+any given sense. Thus the senses that generally have more strongly
+correlated words with them will give more of these words to the new set S,
+i.e. we try to get as many of the words that really matter. This new method,
+multiplying this coefficient by 1000 and taking that amount of words from
+each sense, lead to significantly increased performance in English with the SVM classifier
+but significantly decreased performance with the kneighbor classifier.
+Overall, it yielded results slightly worse than the basic k=10 SVM
+classifier, with the exception of Catalan, which had a better SVM classifier
+(almost as good as the k=10 no punctuation one). Even when excluding stop
+words and performing stemming, the SVM classifier saw decreased performance
+in Spanish and English. 
+
+Thus the conclusion is that this relevancy score was not a very useful feature extractor. I suppose this
+could be due to the issue with '100% words', as discussed above.
+This relevancy score did not model these words very accurately (in the case
+of one-time words), and although I attempted to solve this by adjusting these scores, I did so in a very crude
+way and it probably did not help it enough. For instance, a word that
+appeared 9 times out of 10 with a specific sense received a worse score than
+a word that appeared once with that context--even though the first word
+probably is a more valuable feature to include in the vector. Thus if we
+could conceive of a better way to avoid this sort of problem with this
+relevancy score, we may see increased performance.
+
+
+I decided to implement the pointwise mutual information extracting method. I
+found that the more top words I took for each sense, the better the
+classifier performed (I did some testing, these results aren't recorded).
+The tradeoff for this is increased runtime, as the context vectors created
+become increasingly large. With taking the top 500 words for each sense, the
+SVM performance was slightly below (for English and Spanish) or right at (for
+Catalan) the original k=10 SVM classifier. Thus this feature extractor also
+seemed to not be informative, based on the way I implemented it.
+
+Results table:
+
+                                    LANGUAGE:                 Catalan       English      Spanish
+
+
+CLASSIFIER/FEATURE(S):
+
+BASELINE:                                                    67.8%           53.5%       68.4%
+
+
+kneigh (7 neighbors)/20 surrounding words:                   71.1%           55.2%       70.4%
+SVM/20 surrounding words:                                    81.8%           61.8%       79.0%
+kneigh (7 neighbors), 20 surrounding, no stop words          n/a             53.5%       69.5%
+SVM/20 surrounding words, no stop words                      n/a             61.7%       78.5%
+kneigh (7 neighbors)/ 30 surrounding, no stop words          n/a             55.0%       68.1%
+SVM/30 surrounding words, no stop words                      n/a             62.4%       79.2%
+kneigh (7 neighbors) 30 surrounding                          70.4%           54.8%       69.5%
+SVM/ 30 surrounding words                                    81.9%           61.2%       77.9%
+kneigh/20 surrounding words, stemming                        n/a             55.5%       70.0%
+SVM / 20 surrounding words, stemming                         n/a             62.2%       79.5%
+kneigh/20 surr words, no punct                               71.5%           54.0%       70.1%
+SVM / 20 surrounding words, no punct                         82.6%           60.3%       78.6%
+SVM / 30 surrounding words, no stop, stemming                                63.3%       81.0%
+SVM / 30 surrounding words, no stop, no punct, stemming                      63.3%       81.5%
+SVM / 40 surrounding words, no stop, no punct, stemming                      63.4%       82.4%
+
+
+
+kneigh / 20 surrounding words and synonyms                                   54.4%
+SVM/ 20 surrounding words and synonyms                                       54.0%
+kneigh / 20 surr words, hypernyms of first 3 syns                            53.0%
+SVM / 20 surrounding words, hypernyms of first 3 syns                        58.4%
+kneigh / 20 surr words, hyper + hyponyms of first 3 syns                     53.9%
+SVM / 20 surr words, hypernyms + hyponyms of first 3 syns                    59.7%
+kneigh / 20 surr words+syns, hyper+hyponyms of first 3 syns                  51.9%
+SVM / 20 surr words+syns, hyper+hyponyms of first 3 syns                     56.7%
+
+
+
+
+kneigh / 20 surr words, top 100 for each sense                               54.6%
+based on relevancy score
+
+SVM/ 20 surr words, top 100 for each sense based on                          57.4%
+relevancy score
+
+SVM / 20 surr words, top 20 for each sense based on                          57.7%
+adjusted relevancy score
+
+kneighbor / 20 surr, top 1000*coeff  with 
+adjusted relevancy score                                        70.4%        51.7%        68.2%
+
+SVM / 20 surr, top 1000*coeff with
+adjusted relevancy score                                        82.4%        60.6%        78.5%
+
+SVM / 30 surr, top 1000*coeff  w/ 
+adjussterelevancy, stem + no stop                                            56.6%        78.4%
+
+
+SVM/ 20 surr, PMI, top 500                                      81.8%        61.2%        78.5%
+
+
