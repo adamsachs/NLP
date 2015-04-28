@@ -1,3 +1,11 @@
+This is code for different machine translation programs. In A.py, I implement NLTK's IBM models 1 and 2 by training them on the first 350 sentences from the comtrans corpus and then use the trained model to align the first 50 sentences of the comtrans corpus (between source sentences in German and target sentences in English). A.py also implements a method to calculate the average AER over these 50 sentences that were aligned.
+
+In B.py, I implement my own version of the Berkeley Aligner. I implement the EM algorithm to train the aligner with translation and position parameters (initialized to uniform distribution initialization) for translation in both directions, and average the two directions at every iteration so that they train in agreement. I then implement an alignment method based on the trained aligner, and use it to align the first 50 sentences from the comptrans corpus. It performs significantly better than the IBM models 1 and 2, with an ~8% lower average AER.
+
+main.py trains all the aligners and performs the alignments, as described above.
+----------------------------------------------------------------------------------------------
+
+
 A3. With 10 iterations in training, my IBM model 1 gives me an average AER
 of .665 while my IBM model 2 gives me an average AER of .650, meaning that
 IBM model 2 increases performance by 1.5% for these 50 sentence pairs. The
