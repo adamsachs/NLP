@@ -1,0 +1,108 @@
+A3. With 10 iterations in training, my IBM model 1 gives me an average AER
+of .665 while my IBM model 2 gives me an average AER of .650, meaning that
+IBM model 2 increases performance by 1.5% for these 50 sentence pairs. The
+only difference between IBM models 1 and 2 is 2's use of alignment
+probability parameters that take into account the positions of words in the
+sentences. We can see how this improves performance in the following example
+of a sentence pair. 
+model 1 gives us the following alignment of the sentence:
+[u'(', u'Das', u'Parlament', u'erhebt', u'sich', u'zu', u'einer', u'Schweigeminute', u'.', u')']
+[u'(', u'The', u'House', u'rose', u'and', u'observed', u'a', u'minute', u"'", u's', u'silence', u')']
+0-11 1-5 2-5 3-5 4-10 5-10 6-10 7-10 9-11
+
+whereas model 2 gives us this improved alignment (which has an AER of .66 as
+opposed to model 1's .75):
+[u'(', u'Das', u'Parlament', u'erhebt', u'sich', u'zu', u'einer', u'Schweigeminute', u'.', u')']
+[u'(', u'The', u'House', u'rose', u'and', u'observed', u'a', u'minute', u"'", u's', u'silence', u')']
+0-0 1-5 2-3 3-5 4-10 5-9 6-10 7-7 9-11
+
+To see why model 2 outperforms model 1, we see that, for example, model 1 aligns the opening parentheses at the beginning of
+the sentence with the closing parentheses at the end of the sentence, which
+is clearly incorrect. Model 1 makes this alignment  because it does not take into account
+the positions of words in the sentence, and therefore the translation of an
+open parentheses to a closed parentheses scores high according to the model
+(because open and closed parentheses will usually occur in the same
+sentence). Model 2, however, corrects this problem by incorporating word
+position into its alignment parameters--it is evidently unlikely that the
+word in position 0 in the source sentence will be aligned with the word at
+position 11 in the target sentence, and thus this alignment scores lower in
+the model. The alignment of source word at position 0 to target word at
+position 0 is seemingly a more likely alignment, and thus model 2 correctly
+aligns the opening parentheses of the german sentence with the opening
+parentheses of the english sentence. By consistently using word position to
+improve its alignment predictions as we see here, model 2 outperforms model
+1 over the course of the 50 sentences (and in this sentence in particular).
+
+
+A4: I found that at IBM model 1 converges to lower bound of around .659
+average AER at 21 iterations, and IBM model 2 converges to a lower bound of
+around .648 at 20 iterations. At 15 iterations, IBM model 1 performance is
+still at .665 average AER and IBM model 2 is still at .650 average AER.
+Also, when increasing iterations above 20/21 iterations, the models do not
+see any improvement in performance--in fact, some see an increase in AER
+(e.g. 27 iterations led to a .660 average AER for model 1 and a .649 average
+AER for model 2). This is probably due to our limited sample size (because
+over a big enough sample, we would not expect increased iterations to lead
+to any decrease in performance), but it does indicate a general lack of significant
+improvement in performance past 20/21 iterations. Therefore, I found it
+appropriate to consider 20/21 iterations as a reasonable lower bound for
+average AER performance.
+
+log:
+
+[iterations]: [model 1 average AER]/[model 2 average AER]
+
+15: .665/.650
+20: .661/.648
+21: .659/.648
+22: .659/.648
+23: .659/.648
+25: .660/.649
+27: .660/.649
+
+
+
+
+B4. My Berkeley aligner outperforms both IBM models significantly. It has an
+average AER of .572 over the first 50 sentences when trained on 10
+iterations, which is 7.8% improvement over the IBM model 2. This is because
+my Berkeley aligner takes into account both directions of translation. For an 
+alignment (i, j), where i is the position of a word in the source
+sentence and j is the position of a word in the target sentence, it averages
+the likelihood that i aligns with j with the likelihood that j aligns with
+i. This encourages agreement between both directions of alignment, which
+makes sense with our intuitive notion of translation, in which the
+translation of a word x from language A to a word y in language B generally
+corresponds with the translation of the word y from language B to the word x
+from language A.
+
+
+B5. One sentence in which my Berkeley aligner outperforms the IBM models is
+the following:
+
+Berkeley aligner's alignment (AER = .407):
+[u'All', u'dies', u'entspricht', u'den', u'Grunds\xe4tzen', u',', u'die', u'wir', u'stets', u'verteidigt', u'haben', u'.']
+[u'This', u'is', u'all', u'in', u'accordance', u'with', u'the', u'principles', u'that', u'we', u'have', u'always', u'upheld', u'.']
+0-12 1-4 2-12 3-6 4-7 5-8 6-6 7-9 8-11 9-12 10-10 11-13
+
+ibm model 2's alignment (AER = .846):
+[u'All', u'dies', u'entspricht', u'den', u'Grunds\xe4tzen', u',', u'die', u'wir', u'stets', u'verteidigt', u'haben', u'.']
+[u'This', u'is', u'all', u'in', u'accordance', u'with', u'the', u'principles', u'that', u'we', u'have', u'always', u'upheld', u'.']
+0-12 1-4 2-7 3-4 4-12 5-10 6-10 7-9 8-7 9-12 10-7
+
+We can see that the Berkeley aligner correctly aligns word 3 of the german
+sentence, 'den', with word 6 of the english sentence, 'the', while the ibm
+model 2 aligns 'den' incorrectly with word 4 of the english sentence, 'in'.
+It is possible that ibm model 2 made the incorrect alignment because in
+many  of target sentences paired with source sentences that contained 'den',
+'in' was present as well as 'the.' Therefore, the model could easily be
+confused into translating 'den' into 'in.' However, the Berkeley model
+takes into account the likelihood of the reverse alignment, namely that
+'the' or 'in' would be translated to 'den'. It is far less likely that the incorrect
+concurrence (namely 'in' with 'den') would also occur just frequently as the
+correct concurrence (namely 'the' with 'den') in this data as well--by taking 
+into account the reverse translations, the Berkeley aligner helps to weed
+out  the incorrect correspondences between words that
+happen to occur in one direction. Thus the Berkeley aligner correctly aligns
+'den' with 'the', as this alignment evidently has a higher average of both
+directions than 'den' with 'in.'
